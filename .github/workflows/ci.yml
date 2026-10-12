@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: dist/ is up to date
+        shell: bash
+        run: |
+          git status --porcelain dist
+          test -z "$(git status --porcelain dist)" || { echo "dist/ is stale: run npm run build and commit it"; git diff --stat dist; exit 1; }
+      - name: Test
+        run: npm test
+      - name: Smoke test (demo, no network)
+        shell: bash
+        run: |
+          node dist/cli.js --demo --no-anim --out "$RUNNER_TEMP/demo.png"
+          test -s "$RUNNER_TEMP/demo.png"
+          node dist/cli.js --version
+      - name: No network code in dist/
+        shell: bash
+        run: |
+          ! grep -rnE "require\(['\"](node:)?(http|https|net|dgram|tls)['\"]|from ['\"](node:)?(http|https|net|dgram|tls)['\"]|fetch\(|XMLHttpRequest|WebSocket" dist

@@ -1,0 +1,15 @@
+vibereceipt
+Copyright (c) 2026 NeuroSquad. MIT License (see LICENSE).
+
+This product includes:
+
+- Glyphs from the Spleen bitmap font 2.2.0 (https://github.com/fcambus/spleen),
+  Copyright (c) 2018-2026 Frederic Cambus, BSD 2-Clause License
+  (see fonts/LICENSE-spleen). Converted to src/png/fontData.ts by
+  scripts/bdf-to-ts.mjs.
+
+- Usage parsers and pricing from @neurosquad/core
+  (https://github.com/glmn-ai/neurosquad-cli, packages/core/src/usage, commit
+  1bc586c20593df20c4c5f9b8489226d06f617a7a), Copyright (c) 2026 Stanislav
+  Gelman and NeuroSquad contributors, MIT License
+  (see src/vendor/neurosquad-core/LICENSE-neurosquad-core).

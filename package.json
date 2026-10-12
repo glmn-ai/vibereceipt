@@ -1,0 +1,41 @@
+{
+  "name": "vibereceipt",
+  "version": "0.1.0",
+  "description": "A thermal-printer receipt of your AI coding: tokens, what they'd cost at API list prices, and funny-but-true counters. 100% local.",
+  "keywords": ["claude-code", "codex", "opencode", "ai", "tokens", "receipt", "usage", "cli"],
+  "license": "MIT",
+  "author": "NeuroSquad",
+  "homepage": "https://github.com/glmn-ai/vibereceipt",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glmn-ai/vibereceipt.git"
+  },
+  "bugs": "https://github.com/glmn-ai/vibereceipt/issues",
+  "type": "module",
+  "bin": {
+    "vibereceipt": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "fonts/LICENSE-spleen",
+    "src/vendor/neurosquad-core/LICENSE-neurosquad-core",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "node scripts/clean.mjs dist && tsc -p tsconfig.json",
+    "build:test": "node scripts/clean.mjs .test-dist && tsc -p tsconfig.test.json",
+    "test": "npm run build:test && node scripts/run-tests.mjs",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "font": "node scripts/bdf-to-ts.mjs fonts/spleen-8x16.bdf fonts/spleen-16x32.bdf > src/png/fontData.ts",
+    "demo": "node dist/cli.js --demo --no-anim --plan max20 --out assets/receipt-demo.png"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
+  }
+}
