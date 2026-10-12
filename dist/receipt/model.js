@@ -20,7 +20,8 @@ export function itemText(name, qty, amount, width = WIDTH) {
 /** Two short fields on one line, left and right. */
 const split = (left, right, width = WIDTH) => `${left}${' '.repeat(Math.max(1, width - left.length - right.length))}${right}`;
 const shorten = (text, max) => (text.length <= max ? text : `${text.slice(0, max - 1)}~`);
-export function buildReceipt(stats) {
+export function buildReceipt(stats, options = {}) {
+    const short = Boolean(options.short);
     const lines = [];
     const text = (t, extra = {}) => {
         lines.push({ kind: 'text', text: t, ...extra });
@@ -42,7 +43,7 @@ export function buildReceipt(stats) {
     if (stats.demo)
         text('*** DEMO RECEIPT - SAMPLE DATA ***', { align: 'center', bold: true });
     text('VIBE RECEIPT', { align: 'center', big: true, bold: true });
-    for (const line of STORE_LINES)
+    for (const line of short ? STORE_LINES.slice(0, 1) : STORE_LINES)
         text(line, { align: 'center', dim: true });
     blank();
     text(split(`DATE ${date}`, `TIME ${time}`));
@@ -50,36 +51,46 @@ export function buildReceipt(stats) {
     if (stats.cashier)
         text(`CASHIER: ${shorten(stats.cashier, WIDTH - 9)}`);
     rule('=');
-    text(split('ITEM', 'QTY       AMOUNT'), { dim: true });
-    rule('-');
+    if (!short) {
+        text(split('ITEM', 'QTY       AMOUNT'), { dim: true });
+        rule('-');
+    }
     // ---- Activity ------------------------------------------------------------
     item('SESSIONS', count(stats.sessions));
     if (stats.prompts > 0)
         item('PROMPTS YOU TYPED', count(stats.prompts));
-    if (stats.replies > 0)
+    if (!short && stats.replies > 0)
         item('AGENT REPLIES', count(stats.replies));
     if (stats.toolCalls > 0) {
         item('TOOL CALLS', count(stats.toolCalls));
-        for (const tool of stats.topTools.slice(0, 3))
-            item(`  ${tool.name}`, count(tool.count), undefined, { dim: true });
+        if (!short) {
+            for (const tool of stats.topTools.slice(0, 3))
+                item(`  ${tool.name}`, count(tool.count), undefined, { dim: true });
+        }
     }
-    if (stats.filesEdited > 0)
-        item('FILES EDITED', count(stats.filesEdited));
-    item('MODEL REQUESTS', count(stats.requests));
+    if (short)
+        item('TOKENS', tokens(stats.tokens.total), undefined, { bold: true });
+    else {
+        if (stats.filesEdited > 0)
+            item('FILES EDITED', count(stats.filesEdited));
+        item('MODEL REQUESTS', count(stats.requests));
+    }
     rule('-');
     // ---- Tokens --------------------------------------------------------------
-    text('TOKENS', { bold: true });
-    item('  INPUT', tokens(stats.tokens.input));
-    item('  OUTPUT', tokens(stats.tokens.output));
-    item('  CACHE READ', tokens(stats.tokens.cacheRead));
-    item('  CACHE WRITE', tokens(stats.tokens.cacheWrite));
-    item('  TOTAL', tokens(stats.tokens.total), undefined, { bold: true });
-    rule('-');
+    if (!short) {
+        text('TOKENS', { bold: true });
+        item('  INPUT', tokens(stats.tokens.input));
+        item('  OUTPUT', tokens(stats.tokens.output));
+        item('  CACHE READ', tokens(stats.tokens.cacheRead));
+        item('  CACHE WRITE', tokens(stats.tokens.cacheWrite));
+        item('  TOTAL', tokens(stats.tokens.total), undefined, { bold: true });
+        rule('-');
+    }
     const amountOf = (row) => row.unpricedRequests === row.requests ? 'NO PRICE' : `${usd(row.pico)}${row.unpricedRequests > 0 ? '*' : ''}`;
     text('BY HARNESS', { bold: true });
     for (const row of stats.harnesses)
         item(`  ${row.label}`, tokens(row.tokens), amountOf(row));
-    if (stats.models.length > 0) {
+    if (!short && stats.models.length > 0) {
         text(stats.models.length > 3 ? 'BY MODEL (TOP 3)' : 'BY MODEL', { bold: true });
         for (const row of stats.models.slice(0, 3))
             item(`  ${row.model}`, tokens(row.tokens), amountOf(row));
@@ -89,7 +100,10 @@ export function buildReceipt(stats) {
     const total = usd(stats.cost.pico);
     const priceNotes = () => {
         text(`  at API list prices, table ${stats.cost.priceTable}`, { dim: true });
-        if (stats.cost.unpricedRequests > 0) {
+        if (stats.cost.unpricedRequests > 0 && short) {
+            text(`* ${count(stats.cost.unpricedRequests)} requests: no price (not $0)`, { dim: true });
+        }
+        else if (stats.cost.unpricedRequests > 0) {
             text(`* ${count(stats.cost.unpricedRequests)} requests have no price (not $0):`, { dim: true });
             text(`  ${tokens(stats.cost.unpricedTokens)} tokens left out of the total`, { dim: true });
         }
@@ -99,8 +113,14 @@ export function buildReceipt(stats) {
         item('SUBTOTAL', '', total, { bold: true });
         priceNotes();
         item('SUBSCRIPTION', '', `-${usd(plan.subscriptionPico)}`, { bold: true });
-        text(`  ${plan.plan.label}`, { dim: true });
-        text(`  ${plan.months} mo x $${formatCents(plan.plan.monthlyCents)} (${plan.monthsLabel})`, { dim: true });
+        const months = `${plan.months} mo x $${formatCents(plan.plan.monthlyCents)} (${plan.monthsLabel})`;
+        const oneLine = `  ${plan.plan.label}: ${months}`;
+        if (short && oneLine.length <= WIDTH)
+            text(oneLine, { dim: true });
+        else {
+            text(`  ${plan.plan.label}`, { dim: true });
+            text(`  ${months}`, { dim: true });
+        }
         rule('=');
         const saved = plan.deltaPico >= 0n;
         const abs = saved ? plan.deltaPico : -plan.deltaPico;
@@ -109,9 +129,11 @@ export function buildReceipt(stats) {
     else {
         item('TOTAL', '', total, { bold: true, big: true });
         priceNotes();
-        blank();
-        text('Subscriptions are not billed per token.', { dim: true, align: 'center' });
-        text('Compare yours: --plan max20', { dim: true, align: 'center' });
+        if (!short) {
+            blank();
+            text('Subscriptions are not billed per token.', { dim: true, align: 'center' });
+            text('Compare yours: --plan max20', { dim: true, align: 'center' });
+        }
     }
     // ---- Fun counters -------------------------------------------------------
     const fun = stats.fun;
@@ -137,8 +159,9 @@ export function buildReceipt(stats) {
     if (funLines.length > 0) {
         rule('=');
         text('FUN COUNTERS', { align: 'center', bold: true });
-        rule('.');
-        for (const [name, qty] of funLines)
+        if (!short)
+            rule('.');
+        for (const [name, qty] of short ? funLines.slice(0, 4) : funLines)
             item(name, qty);
     }
     if (stats.projects && stats.projects.length > 0) {
@@ -149,10 +172,12 @@ export function buildReceipt(stats) {
     // ---- Footer --------------------------------------------------------------
     rule('=');
     text('0 BYTES UPLOADED', { align: 'center', bold: true });
-    text('read locally, printed locally', { align: 'center', dim: true });
+    if (!short)
+        text('read locally, printed locally', { align: 'center', dim: true });
     blank();
     lines.push({ kind: 'barcode', seed: `${receiptNo}|${stats.cost.pico}` });
-    text(`#${receiptNo}`, { align: 'center', dim: true });
+    if (!short)
+        text(`#${receiptNo}`, { align: 'center', dim: true });
     blank();
     text('*** THANK YOU FOR VIBING ***', { align: 'center', bold: true });
     text('github.com/glmn-ai/vibereceipt', { align: 'center' });
@@ -161,7 +186,7 @@ export function buildReceipt(stats) {
         blank();
         text('*** DEMO RECEIPT - SAMPLE DATA ***', { align: 'center', bold: true });
     }
-    return { lines, headline: `${total} of tokens at API prices` };
+    return { lines, headline: `${total} of tokens at API prices`, short };
 }
 /** A line as plain text, exactly WIDTH wide (barcode: a text stand-in). */
 export function lineText(line, barcodeText) {

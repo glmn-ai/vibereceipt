@@ -54,6 +54,7 @@ Output
   --no-png           do not save a PNG
   --no-anim          print instantly (non-TTY output never animates)
   --no-color         no ANSI styling (NO_COLOR is respected too)
+  --short            a compact receipt (about 4:5) for the X timeline
   --json             print the stats as JSON instead of the receipt
   --projects         add your top 3 project folder names (off by default)
   --demo             print a clearly labelled DEMO receipt from sample data
@@ -71,6 +72,7 @@ interface Args {
   anim: boolean
   color: boolean
   json: boolean
+  short: boolean
   projects: boolean
   demo: boolean
   help: boolean
@@ -87,6 +89,7 @@ function parseArgs(argv: string[]): Args {
     anim: true,
     color: true,
     json: false,
+    short: false,
     projects: false,
     demo: false,
     help: false,
@@ -131,6 +134,9 @@ function parseArgs(argv: string[]): Args {
         break
       case '--json':
         args.json = true
+        break
+      case '--short':
+        args.short = true
         break
       case '--projects':
         args.projects = true
@@ -276,9 +282,9 @@ async function main(): Promise<number> {
     return 1
   }
 
-  const receipt = buildReceipt(stats)
+  const receipt = buildReceipt(stats, { short: args.short })
   const pngWanted = args.png && (!args.json || args.out !== undefined)
-  const defaultName = `vibereceipt-${args.demo ? 'demo-' : ''}${localDate(Date.now())}.png`
+  const defaultName = `vibereceipt-${args.demo ? 'demo-' : ''}${args.short ? 'short-' : ''}${localDate(Date.now())}.png`
   const pngPath = resolve(args.out ?? defaultName)
 
   if (args.json) {

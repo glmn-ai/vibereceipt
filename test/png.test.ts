@@ -97,5 +97,19 @@ test('the receipt renders as a 1080-wide PNG, at least 4:5', () => {
   assert.ok(rgb[0] < 40 && rgb[1] < 40)
   const mid = ((height >> 1) * width + (width >> 1)) * 3
   assert.ok(rgb[mid] > 30)
-  assert.ok(png.length < 5 * 1024 * 1024, 'fits X image limits')
+  assert.ok(png.length < 1024 * 1024, `PNG is ${png.length} bytes`)
+})
+
+test('--short renders a 4:5 canvas and drops the detail sections', () => {
+  const stats = buildStats(demoScan(), { period: allTime(DEMO_NOW), now: DEMO_NOW, demo: true })
+  const receipt = buildReceipt(stats, { short: true })
+  const text = receipt.lines.map((l) => ('text' in l ? l.text : 'name' in l ? l.name : '')).join('\n')
+  for (const gone of ['BY MODEL', 'CACHE READ', 'AGENT REPLIES', '  Bash', 'LONGEST STREAK']) {
+    assert.ok(!text.includes(gone), `short receipt still has ${gone}`)
+  }
+  for (const kept of ['SESSIONS', 'TOOL CALLS', 'TOKENS', 'BY HARNESS', 'TOTAL', 'THANK YOU', 'DEMO']) {
+    assert.ok(text.includes(kept), `short receipt lost ${kept}`)
+  }
+  const { width, height } = decode(renderReceiptPng(receipt))
+  assert.ok(Math.abs(width / height - 0.8) < 0.002, `aspect ${width}x${height}`)
 })

@@ -1,7 +1,11 @@
 // Vendored from @neurosquad/core (MIT) — https://github.com/glmn-ai/neurosquad-cli
 // Source: packages/core/src/usage/pricing.ts at commit 1bc586c20593df20c4c5f9b8489226d06f617a7a
 // Copyright (c) 2026 Stanislav Gelman and NeuroSquad contributors. MIT License (see LICENSE-neurosquad-core).
-// Read-only copy: do not edit here; change it upstream and re-vendor.
+// LOCAL DIVERGENCE (vibereceipt, 2026-10-12): this file is NOT byte-identical
+// to upstream. Added claude-sonnet-5-5 and claude-haiku-5-5 (two prompt-size
+// tiers) from the Anthropic pricing page fetched 2026-10-12, and bumped
+// PRICE_TABLE_VERSION to 2026-10-12. Send the same change upstream and drop
+// this note on the next re-vendor. Every other vendored file is an unedited copy.
 
 // List prices for usage costs.
 //
@@ -11,7 +15,11 @@
 // price", and the version string is shown next to the numbers so a reader
 // knows which table produced them.
 //
-// Sources (fetched 2026-09-23):
+// Sources (fetched 2026-09-23; Anthropic re-fetched 2026-10-12 for Claude
+// Sonnet 5.5 and Claude Haiku 5.5 — Haiku 5.5 is priced by prompt length,
+// "prompts over 100,000 tokens" pay higher prices, the length counting input
+// + cache reads + cache writes; the 1.1x US-geo multiplier "also applies to
+// the higher prices for prompts over 100,000 tokens" on Haiku 5.5):
 // - Anthropic: https://platform.claude.com/docs/en/about-claude/pricing
 //   (model table incl. 5m / 1h cache writes and cache hits; fast mode; the
 //   1.1x `inference_geo: "us"` multiplier for 4.6+; web search $10 / 1,000;
@@ -30,7 +38,7 @@
 // `tokens × price` is an exact integer of picodollars (see usageMoney.ts).
 import type { UsageRecord } from './types.js'
 
-export const PRICE_TABLE_VERSION = '2026-09-23'
+export const PRICE_TABLE_VERSION = '2026-10-12'
 
 export const PRICE_SOURCES = [
   'https://platform.claude.com/docs/en/about-claude/pricing',
@@ -144,10 +152,25 @@ export const MODEL_PRICES: readonly ModelPrice[] = [
   claude('claude-opus-4-5', 5, 6.25, 10, 0.5, 25),
   claude('claude-opus-4-1', 15, 18.75, 30, 1.5, 75),
   claude('claude-opus-4', 15, 18.75, 30, 1.5, 75),
+  claude('claude-sonnet-5-5', 2, 2.5, 4, 0.1, 10, US),
   claude('claude-sonnet-5', 2, 2.5, 4, 0.2, 10, US),
   claude('claude-sonnet-4-6', 3, 3.75, 6, 0.3, 15, US),
   claude('claude-sonnet-4-5', 3, 3.75, 6, 0.3, 15),
   claude('claude-sonnet-4', 3, 3.75, 6, 0.3, 15),
+  // "Over 100,000" is strictly more: `longContext` compares with `>`.
+  claude('claude-haiku-5-5', 0.1, 0.125, 0.2, 0.01, 0.5, {
+    ...US,
+    longContext: {
+      aboveInputTokens: 100_000,
+      rates: {
+        input: M(0.5),
+        cacheWrite5m: M(0.625),
+        cacheWrite1h: M(1),
+        cacheRead: M(0.05),
+        output: M(2.5)
+      }
+    }
+  }),
   claude('claude-haiku-4-5', 1, 1.25, 2, 0.1, 5),
   claude('claude-haiku-3-5', 0.8, 1, 1.6, 0.08, 4),
   // ---- OpenAI (standard tier) ---------------------------------------------

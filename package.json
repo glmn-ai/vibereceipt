@@ -32,7 +32,7 @@
     "test": "npm run build:test && node scripts/run-tests.mjs",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "font": "node scripts/bdf-to-ts.mjs fonts/spleen-8x16.bdf fonts/spleen-16x32.bdf > src/png/fontData.ts",
-    "demo": "node dist/cli.js --demo --no-anim --plan max20 --out assets/receipt-demo.png"
+    "demo": "node dist/cli.js --demo --no-anim --plan max20 --out assets/receipt-demo.png && node dist/cli.js --demo --no-anim --plan max20 --short --out assets/receipt-demo-short.png"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

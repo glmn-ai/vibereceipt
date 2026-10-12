@@ -14,6 +14,13 @@ npx github:glmn-ai/vibereceipt
 
 <p align="center"><sub>The receipt above comes from <code>--demo</code> sample data, not a real person's logs.</sub></p>
 
+Posting it? `--short` prints a compact receipt and saves it as an exact 4:5 PNG,
+which the X timeline shows uncropped:
+
+<p align="center">
+  <img src="assets/receipt-demo-short.png" alt="The compact --short receipt: header, sessions, prompts, tool calls, total tokens, cost per harness, subtotal, subscription, YOU SAVED, four fun counters and the footer, on a 4:5 canvas. Marked DEMO: sample data." width="480">
+</p>
+
 vibereceipt reads the session logs that Claude Code, Codex CLI and OpenCode
 already keep on your machine. It prints a thermal-printer receipt in your
 terminal, line by line, and saves a PNG of it that's ready to post. It needs
@@ -48,6 +55,7 @@ npx github:glmn-ai/vibereceipt                 # all time
 npx github:glmn-ai/vibereceipt --since 30d     # or 7d, 4w, 6m, 1y, 2026-09-01
 npx github:glmn-ai/vibereceipt --month         # this calendar month
 npx github:glmn-ai/vibereceipt --plan max20    # compare with your subscription
+npx github:glmn-ai/vibereceipt --short         # compact 4:5 receipt for the timeline
 npx github:glmn-ai/vibereceipt --demo          # sample data, clearly marked DEMO
 ```
 
@@ -56,6 +64,7 @@ npx github:glmn-ai/vibereceipt --demo          # sample data, clearly marked DEM
 | `--since <when>` | Period: `30d`, `7d`, `4w`, `6m`, `1y`, or a date `YYYY-MM-DD` (local time). The default is all time. |
 | `--month` / `--year` | This calendar month or year. |
 | `--plan <plan>` | `pro` ($20), `max5` ($100), `max20` ($200), `chatgpt-plus` ($20), `chatgpt-pro` ($200), or any monthly price, e.g. `100` or `$49.99`. |
+| `--short` | A compact receipt for posting: header; sessions, prompts and tool calls; total tokens; cost by harness; subtotal or plan comparison; the top 4 fun counters; footer. The PNG is an exact 4:5. |
 | `--out <path>` | Where to save the PNG. The default is `./vibereceipt-YYYY-MM-DD.png`. |
 | `--no-png` | Don't save a PNG. |
 | `--no-anim` | Print the receipt instantly. Output that isn't a TTY never animates. |
@@ -127,7 +136,7 @@ behind nsq:
   mode, the 1.1x `inference_geo: us` multiplier and web searches are all
   priced separately.
 - **The price table is versioned.** The receipt prints the table's date
-  (`price table 2026-09-23`). The prices are Anthropic's and OpenAI's
+  (`price table 2026-10-12`). The prices are Anthropic's and OpenAI's
   published API list prices.
 - **Unknown models are "no price", never $0.** A local model, a model behind a
   reseller, or a model missing from the table gets no price. The receipt shows
@@ -176,7 +185,9 @@ npm run demo       # regenerates assets/receipt-demo.png
 
 `dist/` is committed on purpose, and CI fails if it's out of date. The vendored
 parsers in `src/vendor/neurosquad-core/` are a read-only copy: fixes go
-upstream first, then get re-vendored.
+upstream first, then get re-vendored. One deliberate exception for now:
+`pricing.ts` adds Claude Sonnet 5.5 and Claude Haiku 5.5 (price table
+2026-10-12) ahead of upstream; its header says so.
 
 ## Credits
 

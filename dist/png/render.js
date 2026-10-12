@@ -28,6 +28,8 @@ const INK = [33, 31, 30];
 const BG_TOP = [27, 27, 33];
 const BG_BOTTOM = [13, 13, 16];
 const FOOT = [112, 112, 124];
+/** 4x4 ordered-dither thresholds: smooth gradients that still compress well. */
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 /** Deterministic per-pixel noise in [0, 1). */
 function hash(x, y, seed = 0) {
     let h = (x * 374761393 + y * 668265263 + seed * 2246822519) | 0;
@@ -84,7 +86,7 @@ class Printer {
     /** Thermal-head density: a faint per-column variation plus grain. */
     inkAlpha(x, y, ink) {
         const head = 0.93 + 0.07 * hash(x, 0, 7);
-        const grain = 0.86 + 0.14 * hash(x, y, 3);
+        const grain = 0.86 + 0.14 * hash(x >> 1, y >> 1, 3);
         return ink.density * head * grain;
     }
     glyph(font, scale, code, x0, y0, ink) {
@@ -166,8 +168,10 @@ export function renderReceiptPng(receipt) {
     const contentH = receipt.lines.reduce((sum, line) => sum + lineHeight(line), 0);
     const paperH = PAPER_PAD_TOP + contentH + PAPER_PAD_BOTTOM;
     const naturalH = MARGIN_TOP + paperH + MARGIN_BOTTOM;
+    // Full receipt: 1080 wide, as tall as it needs (at least 4:5). Short
+    // receipt: the canvas widens to an exact 4:5 so the timeline shows it whole.
     const height = Math.max(MIN_H, naturalH);
-    const width = CANVAS_W;
+    const width = receipt.short ? Math.max(CANVAS_W, Math.round((height * 4) / 5)) : CANVAS_W;
     const canvas = new Canvas(width, height);
     const paperX = Math.round((width - PAPER_W) / 2);
     const paperY = Math.round((height - paperH - (MARGIN_BOTTOM - MARGIN_TOP)) / 2);
@@ -187,7 +191,7 @@ export function renderReceiptPng(receipt) {
         for (let x = 0; x < width; x++) {
             const d = Math.hypot(x - cx, (y - cy) * 0.8) / glowR;
             const glow = Math.max(0, 1 - d) ** 2 * 16;
-            const dither = hash(x, y, 11) - 0.5;
+            const dither = BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.47;
             canvas.set(x, y, [
                 Math.round(BG_TOP[0] + (BG_BOTTOM[0] - BG_TOP[0]) * t + glow + dither),
                 Math.round(BG_TOP[1] + (BG_BOTTOM[1] - BG_TOP[1]) * t + glow + dither),
@@ -219,7 +223,8 @@ export function renderReceiptPng(receipt) {
                 continue;
             const edge = Math.min(x - paperX, paperX + PAPER_W - 1 - x) / PAPER_W;
             const shade = edge < 0.06 ? (0.06 - edge) * 0.45 : 0;
-            const grain = (hash(x >> 1, y >> 1, 5) - 0.5) * 4;
+            // Sparse specks instead of full noise: the same paper feel, a third of the PNG size.
+            const grain = hash(x >> 1, y >> 1, 5) < 0.22 ? -2 : 0;
             const k = 1 - shade;
             canvas.set(x, y, [
                 Math.round(PAPER[0] * k + grain),
