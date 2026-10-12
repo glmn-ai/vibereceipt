@@ -270,7 +270,7 @@ export function renderReceiptPng(receipt) {
         y += h;
     }
     // Under the paper: how to get your own.
-    const foot = 'npx vibereceipt';
+    const foot = 'npx github:glmn-ai/vibereceipt';
     const footY = paperY + paperH + Math.round((MARGIN_BOTTOM - CELL_H) / 2) + 6;
     const footX = Math.round((width - foot.length * CELL_W) / 2);
     for (let i = 0; i < foot.length; i++) {

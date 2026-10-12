@@ -38,7 +38,7 @@ A thermal-printer receipt of your AI coding: tokens, what they would cost at
 API list prices, and funny-but-true counters. Reads Claude Code, Codex CLI and
 OpenCode logs on this machine. No network, no account, nothing uploaded.
 
-Usage: npx vibereceipt [options]
+Usage: npx github:glmn-ai/vibereceipt [options]
 
 Period (default: all time)
   --since <when>     30d, 7d, 4w, 6m, 1y, or a date like 2026-09-01
@@ -269,7 +269,7 @@ async function main(): Promise<number> {
         '',
         '  Supported: Claude Code, Codex CLI, OpenCode.',
         '  Logs elsewhere? Set CLAUDE_CONFIG_DIR, CODEX_HOME or XDG_DATA_HOME.',
-        '  Just curious? Try: npx vibereceipt --demo',
+        '  Just curious? Try: npx github:glmn-ai/vibereceipt --demo',
         ''
       ].join('\n') + '\n'
     )
@@ -304,7 +304,7 @@ async function main(): Promise<number> {
   }
 
   if (!args.json) {
-    const share = `my AI coding receipt: ${receipt.headline} · npx vibereceipt`
+    const share = `my AI coding receipt: ${receipt.headline} · github.com/glmn-ai/vibereceipt`
     const url = `https://x.com/intent/post?text=${encodeURIComponent(share)}`
     const b = (t: string): string => (color ? `\x1b[1m${t}\x1b[0m` : t)
     if (pngWanted) process.stdout.write(`  ${b('Receipt saved:')} ${pngPath}\n`)
