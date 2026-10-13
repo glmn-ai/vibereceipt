@@ -1,10 +1,11 @@
 // `--plan`: what your subscription cost over the period, next to what the
 // same tokens would have cost at API list prices.
 //
-// The subscription is counted per calendar month touched: from the month of
-// your first request in the period to the month of your last, inclusive. A
-// period from 28 Sep to 3 Oct is two months of subscription — that is how
-// monthly billing works, and the receipt prints the months so you can check.
+// A fixed-length period is charged for its length: `--since 30d` is one
+// 30-day month of subscription, `--since 7d` is 7/30 of one, `--since 6m` is
+// six. All time and `--year` are counted per calendar month touched: from the
+// month of your first request to the month of your last, inclusive, which is
+// how monthly billing works. The receipt prints which one it used.
 import { monthName } from './period.js';
 import { PICO_PER_DOLLAR } from './vendor/neurosquad-core/money.js';
 export const PLAN_PRESETS = {
@@ -57,13 +58,36 @@ export function monthsLabel(firstAt, lastAt) {
     }
     return `${titleMonth(a.getMonth())} ${a.getFullYear()}-${titleMonth(b.getMonth())} ${b.getFullYear()}`;
 }
-export function planMath(plan, listPico, firstAt, lastAt) {
-    const months = monthsTouched(firstAt, lastAt);
+/** Days in the month a `--since 30d`-style period is charged against. */
+export const PLAN_MONTH_DAYS = 30;
+const trimDecimals = (n) => String(Math.round(n * 100) / 100);
+export function planMath(plan, listPico, firstAt, lastAt, length) {
     // cents → picodollars: 1 cent = 1e10 pico.
-    const subscriptionPico = BigInt(plan.monthlyCents) * BigInt(months) * (PICO_PER_DOLLAR / 100n);
+    const centPico = PICO_PER_DOLLAR / 100n;
+    const price = `$${formatCents(plan.monthlyCents)}`;
+    let months;
+    let subscriptionPico;
+    let detail;
+    if (length && 'days' in length) {
+        months = length.days / PLAN_MONTH_DAYS;
+        subscriptionPico = (BigInt(plan.monthlyCents) * centPico * BigInt(length.days)) / BigInt(PLAN_MONTH_DAYS);
+        const share = length.days % PLAN_MONTH_DAYS === 0 ? `${length.days / PLAN_MONTH_DAYS}` : `${length.days}/${PLAN_MONTH_DAYS}`;
+        detail = `${length.days} days = ${share} mo x ${price}`;
+    }
+    else if (length) {
+        months = length.months;
+        subscriptionPico = BigInt(plan.monthlyCents) * BigInt(months) * centPico;
+        detail = `${months} mo x ${price}`;
+    }
+    else {
+        months = monthsTouched(firstAt, lastAt);
+        subscriptionPico = BigInt(plan.monthlyCents) * BigInt(months) * centPico;
+        detail = `${months} mo x ${price} (${monthsLabel(firstAt, lastAt)})`;
+    }
     return {
         plan,
-        months,
+        months: Number(trimDecimals(months)),
+        detail,
         monthsLabel: monthsLabel(firstAt, lastAt),
         subscriptionPico,
         deltaPico: listPico - subscriptionPico

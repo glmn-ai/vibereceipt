@@ -231,7 +231,7 @@ export function buildStats(scan, options) {
         notes: scan.sources.map((source) => source.note).filter((note) => Boolean(note))
     };
     if (options.plan && firstAt !== undefined && lastAt !== undefined) {
-        stats.plan = planMath(options.plan, cost.pico, firstAt, lastAt);
+        stats.plan = planMath(options.plan, cost.pico, firstAt, lastAt, options.period.planLength);
     }
     if (options.projects) {
         stats.projects = [...projects.entries()]

@@ -1,6 +1,6 @@
 {
   "name": "vibereceipt",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A thermal-printer receipt of your AI coding: tokens, what they'd cost at API list prices, and funny-but-true counters. 100% local.",
   "keywords": ["claude-code", "codex", "opencode", "ai", "tokens", "receipt", "usage", "cli"],
   "license": "MIT",

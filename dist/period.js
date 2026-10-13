@@ -29,7 +29,8 @@ export function parseSince(value, now) {
         else
             from = new Date(today.getFullYear() - count, today.getMonth(), today.getDate() + 1);
         const word = { d: 'DAY', w: 'WEEK', m: 'MONTH', y: 'YEAR' }[unit];
-        return { from: from.getTime(), to: now + 1, label: `LAST ${count} ${word}${count === 1 ? '' : 'S'}` };
+        const planLength = unit === 'd' ? { days: count } : unit === 'w' ? { days: count * 7 } : { months: unit === 'm' ? count : count * 12 };
+        return { from: from.getTime(), to: now + 1, label: `LAST ${count} ${word}${count === 1 ? '' : 'S'}`, planLength };
     }
     const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
     if (date) {
@@ -40,14 +41,21 @@ export function parseSince(value, now) {
         }
         if (from.getTime() > now)
             throw new PeriodError(`--since: ${value} is in the future`);
-        return { from: from.getTime(), to: now + 1, label: `SINCE ${date[1]}-${date[2]}-${date[3]}` };
+        // Days from that midnight through today, inclusive.
+        const days = Math.round((startOfDay(now).getTime() - from.getTime()) / 86_400_000) + 1;
+        return { from: from.getTime(), to: now + 1, label: `SINCE ${date[1]}-${date[2]}-${date[3]}`, planLength: { days } };
     }
     throw new PeriodError(`--since: use 30d, 7d, 4w, 6m, 1y or a date like 2026-09-01 (got "${value}")`);
 }
 export function thisMonth(now) {
     const d = new Date(now);
     const from = new Date(d.getFullYear(), d.getMonth(), 1);
-    return { from: from.getTime(), to: now + 1, label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}` };
+    return {
+        from: from.getTime(),
+        to: now + 1,
+        label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+        planLength: { months: 1 }
+    };
 }
 export function thisYear(now) {
     const d = new Date(now);

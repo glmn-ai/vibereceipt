@@ -48,3 +48,25 @@ test('--since and --month', () => {
   assert.throws(() => parseSince('2026-02-30', now), PeriodError)
   assert.throws(() => parseSince('soon', now), PeriodError)
 })
+
+test('a fixed-length period is charged for its length, not the months it touches', () => {
+  const now = new Date(2026, 9, 13, 8).getTime()
+  const first = at(2026, 9, 14)
+  const last = at(2026, 10, 13)
+  // 30 days across Sep and Oct = one month of Max 5x, not two (reported on r/ClaudeCode).
+  const thirty = planMath(parsePlan('max5'), dollars(1000), first, last, parseSince('30d', now).planLength)
+  assert.equal(thirty.subscriptionPico, dollars(100))
+  assert.equal(thirty.months, 1)
+  assert.equal(thirty.detail, '30 days = 1 mo x $100')
+  const week = planMath(parsePlan('max20'), dollars(1000), first, last, parseSince('7d', now).planLength)
+  assert.equal(week.subscriptionPico, (dollars(200) * 7n) / 30n)
+  assert.equal(week.detail, '7 days = 7/30 mo x $200')
+  assert.deepEqual(parseSince('2w', now).planLength, { days: 14 })
+  assert.deepEqual(parseSince('6m', now).planLength, { months: 6 })
+  assert.deepEqual(parseSince('1y', now).planLength, { months: 12 })
+  assert.deepEqual(parseSince('2026-10-01', now).planLength, { days: 13 })
+  assert.deepEqual(thisMonth(now).planLength, { months: 1 })
+  // All time keeps the calendar months touched.
+  const all = planMath(parsePlan('max20'), dollars(1000), at(2026, 7, 8), at(2026, 10, 12))
+  assert.equal(all.detail, '4 mo x $200 (Jul-Oct 2026)')
+})

@@ -154,9 +154,12 @@ behind nsq:
 - The logs don't say who paid. If `ANTHROPIC_API_KEY` (or an OpenAI key for
   Codex) was set, those requests were billed to the API, not your plan, and
   `--plan`'s "you saved" doesn't apply to them.
-- `--plan` charges the subscription once for each **calendar month touched**:
-  every month from your first activity in the period to your last, inclusive.
-  The receipt prints the months, e.g. `4 mo x $200 (Jul-Oct 2026)`.
+- How `--plan` counts the subscription, printed on the receipt:
+  - a period of fixed length is charged for its length: `--since 30d` is one
+    30-day month (`30 days = 1 mo x $100`), `--since 7d` is 7/30 of one,
+    `--since 6m` six, `--month` one;
+  - all time and `--year` are charged once per **calendar month touched**,
+    from your first activity to your last, e.g. `4 mo x $200 (Jul-Oct 2026)`.
 - Counters come from what the logs record:
   - "Prompts you typed" leaves out tool results, slash-command plumbing,
     system and meta lines, and prompts a parent agent sent to a subagent.

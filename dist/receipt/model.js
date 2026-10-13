@@ -1,5 +1,4 @@
 import { count, duration, pad2, tokens, usd } from '../format.js';
-import { formatCents } from '../plan.js';
 export const WIDTH = 44;
 /** Width of the AMOUNT column (right-aligned). */
 const AMOUNT = 11;
@@ -113,7 +112,7 @@ export function buildReceipt(stats, options = {}) {
         item('SUBTOTAL', '', total, { bold: true });
         priceNotes();
         item('SUBSCRIPTION', '', `-${usd(plan.subscriptionPico)}`, { bold: true });
-        const months = `${plan.months} mo x $${formatCents(plan.plan.monthlyCents)} (${plan.monthsLabel})`;
+        const months = plan.detail;
         const oneLine = `  ${plan.plan.label}: ${months}`;
         if (short && oneLine.length <= WIDTH)
             text(oneLine, { dim: true });
