@@ -1,12 +1,7 @@
 // Vendored from @neurosquad/core (MIT) — https://github.com/glmn-ai/neurosquad-cli
-// Source: packages/core/src/usage/pricing.ts at commit 1bc586c20593df20c4c5f9b8489226d06f617a7a
+// Source: packages/core/src/usage/pricing.ts at commit b70076e9d305f47b61273f5e2b10aaeca7a831fb
 // Copyright (c) 2026 Stanislav Gelman and NeuroSquad contributors. MIT License (see LICENSE-neurosquad-core).
-// LOCAL DIVERGENCE (vibereceipt, 2026-10-12): this file is NOT byte-identical
-// to upstream. Added claude-sonnet-5-5 and claude-haiku-5-5 (two prompt-size
-// tiers) from the Anthropic pricing page fetched 2026-10-12, and bumped
-// PRICE_TABLE_VERSION to 2026-10-12. Send the same change upstream and drop
-// this note on the next re-vendor. Every other vendored file is an unedited copy.
-export const PRICE_TABLE_VERSION = '2026-10-12';
+export const PRICE_TABLE_VERSION = '2026-10-13';
 export const PRICE_SOURCES = [
     'https://platform.claude.com/docs/en/about-claude/pricing',
     'https://developers.openai.com/api/docs/pricing'
@@ -90,6 +85,10 @@ export const MODEL_PRICES = [
     claude('claude-haiku-4-5', 1, 1.25, 2, 0.1, 5),
     claude('claude-haiku-3-5', 0.8, 1, 1.6, 0.08, 4),
     // ---- OpenAI (standard tier) ---------------------------------------------
+    openai('gpt-6-astra', { input: 10, cached: 1, write: 12.5, output: 50 }, { input: 20, cached: 2, write: 25, output: 75 }),
+    openai('gpt-6.1-sol', { input: 2, cached: 0.1, write: 2.5, output: 10 }, { input: 4, cached: 0.2, write: 5, output: 15 }),
+    openai('gpt-6-sol', { input: 2, cached: 0.2, write: 2.5, output: 10 }, { input: 4, cached: 0.4, write: 5, output: 15 }),
+    openai('gpt-6-luna', { input: 0.1, cached: 0.01, write: 0.125, output: 0.5 }, { input: 0.2, cached: 0.02, write: 0.25, output: 0.75 }),
     openai('gpt-5.6-sol', { input: 4, cached: 0.4, write: 5, output: 20 }, { input: 8, cached: 0.8, write: 10, output: 30 }),
     openai('gpt-5.6-terra', { input: 2, cached: 0.2, write: 2.5, output: 12 }, { input: 4, cached: 0.4, write: 5, output: 18 }),
     openai('gpt-5.6-luna', { input: 0.2, cached: 0.02, write: 0.25, output: 1.2 }, { input: 0.4, cached: 0.04, write: 0.5, output: 1.8 }),

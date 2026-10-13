@@ -136,7 +136,7 @@ behind nsq:
   mode, the 1.1x `inference_geo: us` multiplier and web searches are all
   priced separately.
 - **The price table is versioned.** The receipt prints the table's date
-  (`price table 2026-10-12`). The prices are Anthropic's and OpenAI's
+  (`price table 2026-10-13`). The prices are Anthropic's and OpenAI's
   published API list prices.
 - **Unknown models are "no price", never $0.** A local model, a model behind a
   reseller, or a model missing from the table gets no price. The receipt shows
@@ -191,9 +191,8 @@ npm run demo       # regenerates assets/receipt-demo.png
 
 `dist/` is committed on purpose, and CI fails if it's out of date. The vendored
 parsers in `src/vendor/neurosquad-core/` are a read-only copy: fixes go
-upstream first, then get re-vendored. One deliberate exception for now:
-`pricing.ts` adds Claude Sonnet 5.5 and Claude Haiku 5.5 (price table
-2026-10-12) ahead of upstream; its header says so.
+upstream first, then get re-vendored. Each file's header names the upstream
+commit it was copied from.
 
 ## Credits
 
