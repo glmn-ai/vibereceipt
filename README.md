@@ -151,6 +151,9 @@ behind nsq:
 - This is what the same traffic **would cost at API list prices**. A Claude or
   ChatGPT subscription isn't billed per token, so the total isn't what you
   paid.
+- The logs don't say who paid. If `ANTHROPIC_API_KEY` (or an OpenAI key for
+  Codex) was set, those requests were billed to the API, not your plan, and
+  `--plan`'s "you saved" doesn't apply to them.
 - `--plan` charges the subscription once for each **calendar month touched**:
   every month from your first activity in the period to your last, inclusive.
   The receipt prints the months, e.g. `4 mo x $200 (Jul-Oct 2026)`.
