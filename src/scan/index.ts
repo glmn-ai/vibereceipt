@@ -9,7 +9,7 @@ import { JsonlSource, type FileMeta, type LineFormat } from '../vendor/neurosqua
 import { claudeCodeFormat } from '../vendor/neurosquad-core/sources/claudeCode.js'
 import { codexFormat } from '../vendor/neurosquad-core/sources/codex.js'
 import { OpenCodeSource } from '../vendor/neurosquad-core/sources/opencode.js'
-import { emptyCollected, type Collected, type HarnessId } from './collector.js'
+import { append, emptyCollected, type Collected, type HarnessId } from './collector.js'
 import { ClaudeCounters, type ClaudeFileContext } from './claude.js'
 import { CodexCounters } from './codex.js'
 import { loadSqlite, scanOpenCodeCounters } from './opencode.js'
@@ -110,7 +110,7 @@ export async function scanAll(
     }
     const source = new JsonlSource(format)
     if (roots.length > 0) await source.scan()
-    records.push(...source.records())
+    append(records, source.records())
     sources.push({ harness: 'claude-code', locations: locations.claudeRoots, found: total > 0, files: total })
   }
 
@@ -136,7 +136,7 @@ export async function scanAll(
     const source = new JsonlSource(format)
     if (roots.length > 0) await source.scan()
     counters.finish()
-    records.push(...source.records())
+    append(records, source.records())
     sources.push({ harness: 'codex-cli', locations: base.roots(), found: total > 0, files: total })
   }
 
@@ -155,7 +155,7 @@ export async function scanAll(
         const status = source.status()
         if (status.error) info.note = 'OpenCode database could not be read (skipped).'
         else {
-          records.push(...source.records())
+          append(records, source.records())
           info.found = true
           info.files = status.files
           try {

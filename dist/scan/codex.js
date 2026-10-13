@@ -1,4 +1,4 @@
-import { displayTool, emptyCollected, fileKey, isRage, scanReplyText } from './collector.js';
+import { append, displayTool, emptyCollected, fileKey, isRage, scanReplyText } from './collector.js';
 /** A reply reduced to its counts at once (no text is buffered). */
 function replyOf(at, text) {
     const one = emptyCollected();
@@ -100,12 +100,12 @@ export class CodexCounters {
     finish() {
         for (const buffer of this.files.values()) {
             const prompts = buffer.eventPrompts.length > 0 ? buffer.eventPrompts : buffer.itemPrompts;
-            this.out.prompts.push(...prompts);
+            append(this.out.prompts, prompts);
             const replies = buffer.itemReplies.length > 0 ? buffer.itemReplies : buffer.eventReplies;
             for (const reply of replies) {
-                this.out.replies.push(...reply.replies);
-                this.out.absolutelyRight.push(...reply.absolutelyRight);
-                this.out.perfect.push(...reply.perfect);
+                append(this.out.replies, reply.replies);
+                append(this.out.absolutelyRight, reply.absolutelyRight);
+                append(this.out.perfect, reply.perfect);
             }
         }
         this.files.clear();

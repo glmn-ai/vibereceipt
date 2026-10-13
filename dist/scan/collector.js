@@ -4,6 +4,14 @@
 // its time, its session and two booleans the moment it is read; a reply to
 // two phrase counts. Edited file paths are kept only as a set (to count
 // distinct ones) and never leave this module.
+/**
+ * `target.push(...items)` without the spread: a spread passes every item as a
+ * call argument, and a few hundred thousand of them overflow the stack.
+ */
+export function append(target, items) {
+    for (const item of items)
+        target.push(item);
+}
 export const emptyCollected = () => ({
     prompts: [],
     replies: [],

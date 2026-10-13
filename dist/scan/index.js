@@ -8,7 +8,7 @@ import { JsonlSource } from '../vendor/neurosquad-core/jsonlSource.js';
 import { claudeCodeFormat } from '../vendor/neurosquad-core/sources/claudeCode.js';
 import { codexFormat } from '../vendor/neurosquad-core/sources/codex.js';
 import { OpenCodeSource } from '../vendor/neurosquad-core/sources/opencode.js';
-import { emptyCollected } from './collector.js';
+import { append, emptyCollected } from './collector.js';
 import { ClaudeCounters } from './claude.js';
 import { CodexCounters } from './codex.js';
 import { loadSqlite, scanOpenCodeCounters } from './opencode.js';
@@ -82,7 +82,7 @@ export async function scanAll(locations = defaultLocations(), progress = () => {
         const source = new JsonlSource(format);
         if (roots.length > 0)
             await source.scan();
-        records.push(...source.records());
+        append(records, source.records());
         sources.push({ harness: 'claude-code', locations: locations.claudeRoots, found: total > 0, files: total });
     }
     // ---- Codex CLI -----------------------------------------------------------
@@ -108,7 +108,7 @@ export async function scanAll(locations = defaultLocations(), progress = () => {
         if (roots.length > 0)
             await source.scan();
         counters.finish();
-        records.push(...source.records());
+        append(records, source.records());
         sources.push({ harness: 'codex-cli', locations: base.roots(), found: total > 0, files: total });
     }
     // ---- OpenCode ------------------------------------------------------------
@@ -128,7 +128,7 @@ export async function scanAll(locations = defaultLocations(), progress = () => {
                 if (status.error)
                     info.note = 'OpenCode database could not be read (skipped).';
                 else {
-                    records.push(...source.records());
+                    append(records, source.records());
                     info.found = true;
                     info.files = status.files;
                     try {

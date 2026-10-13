@@ -32,6 +32,14 @@ export interface Collected {
   edits: { at: number; file: string }[]
 }
 
+/**
+ * `target.push(...items)` without the spread: a spread passes every item as a
+ * call argument, and a few hundred thousand of them overflow the stack.
+ */
+export function append<T>(target: T[], items: Iterable<T>): void {
+  for (const item of items) target.push(item)
+}
+
 export const emptyCollected = (): Collected => ({
   prompts: [],
   replies: [],
