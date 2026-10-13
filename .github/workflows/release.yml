@@ -1,0 +1,61 @@
+name: release
+
+# Publishes the version in package.json to npm with provenance, through npm
+# trusted publishing (OIDC, no token). Run it by hand from the Actions tab
+# after bumping the version on main. The npm trusted publisher is bound to
+# this file name (release.yml) and the environment `npm`.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/vibereceipt
+    permissions:
+      contents: write # git tag and GitHub release
+      id-token: write # npm trusted publishing + provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: npm supports trusted publishing
+        run: |
+          v="$(npm --version)"; echo "npm $v"
+          node -e 'const [a,b,c]=process.argv[1].split(".").map(Number); process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)' "$v" \
+            || npm install -g npm@^11.5.1
+      - run: npm ci --no-audit --no-fund --ignore-scripts
+      - name: Build
+        run: npm run build
+      - name: dist/ matches the source
+        run: test -z "$(git status --porcelain dist)" || { git diff --stat dist; exit 1; }
+      - name: Test
+        run: npm test
+      - name: Version not on npm yet
+        id: version
+        run: |
+          v="$(node -p 'require("./package.json").version')"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if npm view "vibereceipt@$v" version >/dev/null 2>&1; then echo "::error::vibereceipt@$v is already on npm"; exit 1; fi
+      - name: Publish
+        run: npm publish --provenance --access public
+      - name: Tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes

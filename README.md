@@ -3,10 +3,10 @@
 **Print a store receipt for your AI coding. Tokens, what they'd cost at API prices, and how many times the agent said "You're absolutely right".**
 
 ```sh
-npx github:glmn-ai/vibereceipt
+npx vibereceipt
 ```
 
-(Once it's on npm: `npx vibereceipt`.)
+(Or straight from GitHub: `npx github:glmn-ai/vibereceipt`.)
 
 <p align="center">
   <img src="assets/receipt-demo.png" alt="A thermal-printer receipt listing sessions, prompts, tool calls, tokens, cost per harness and model, a subscription comparison and fun counters. Marked DEMO: sample data." width="540">
@@ -51,12 +51,12 @@ no account, makes no network calls and uploads nothing.
 ## Usage
 
 ```sh
-npx github:glmn-ai/vibereceipt                 # all time
-npx github:glmn-ai/vibereceipt --since 30d     # or 7d, 4w, 6m, 1y, 2026-09-01
-npx github:glmn-ai/vibereceipt --month         # this calendar month
-npx github:glmn-ai/vibereceipt --plan max20    # compare with your subscription
-npx github:glmn-ai/vibereceipt --short         # compact 4:5 receipt for the timeline
-npx github:glmn-ai/vibereceipt --demo          # sample data, clearly marked DEMO
+npx vibereceipt                # all time
+npx vibereceipt --since 30d    # or 7d, 4w, 6m, 1y, 2026-09-01
+npx vibereceipt --month        # this calendar month
+npx vibereceipt --plan max20   # compare with your subscription
+npx vibereceipt --short        # compact 4:5 receipt for the timeline
+npx vibereceipt --demo         # sample data, clearly marked DEMO
 ```
 
 | Flag | What it does |
